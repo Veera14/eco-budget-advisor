@@ -23,13 +23,16 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
         setLoading(true);
 
         try {
+            // Slicing history to the last 10 messages to limit token usage and optimize efficiency
+            const optimizedHistory = chatHistory.slice(-10);
+
             // Connects directly to our local Express server backend
             const response = await fetch('http://localhost:5000/api/advisor', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userContext,
-                    messageHistory: chatHistory,
+                    messageHistory: optimizedHistory,
                     newMessage: input
                 })
             });
@@ -51,14 +54,27 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '400px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '450px' }} aria-label="Advisor Chat">
             {/* Conversation Thread Wrapper */}
-            <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '550px' }}>
+            <div 
+                style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '550px' }}
+                role="log"
+                aria-label="Chat history"
+                aria-live="polite"
+            >
                 {chatHistory.length === 0 && (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#757575', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px dashed #bdbdbd' }}>
-                        🤖 <strong>Welcome to your Eco-Budget Terminal!</strong><br />
-                        Adjust your context parameters on the left sidebar, then ask me something like:
-                        <em style={{ display: 'block', marginTop: '6px', color: '#2e7d32' }}>"How can I drop my electricity load by 15% to save money?"</em>
+                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', backgroundColor: 'var(--primary-light)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--primary)' }}>
+                        <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>🤖</span>
+                        <strong style={{ color: 'var(--primary-dark)', fontFamily: 'var(--font-display)', fontSize: '15px' }}>
+                            Welcome to your Eco-Budget Advisor!
+                        </strong>
+                        <br />
+                        <span style={{ fontSize: '13px', display: 'inline-block', marginTop: '6px' }}>
+                            Adjust your variables in the left sidebar, then ask me anything like:
+                        </span>
+                        <em style={{ display: 'block', marginTop: '8px', color: 'var(--primary-hover)', fontWeight: '600', fontSize: '13px' }}>
+                            "How can I drop my electricity load by 15% to save money?"
+                        </em>
                     </div>
                 )}
 
@@ -67,15 +83,16 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
                         key={idx}
                         style={{
                             alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                            backgroundColor: msg.role === 'user' ? '#2e7d32' : '#f5f5f5',
-                            color: msg.role === 'user' ? '#ffffff' : '#212121',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
+                            backgroundColor: msg.role === 'user' ? 'var(--primary-dark)' : '#f1f5f9',
+                            color: msg.role === 'user' ? '#ffffff' : 'var(--text-main)',
+                            padding: '12px 18px',
+                            borderRadius: msg.role === 'user' ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
                             maxWidth: '75%',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                            boxShadow: 'var(--shadow-sm)',
                             whiteSpace: 'pre-wrap',
                             fontSize: '14px',
-                            lineHeight: '1.5'
+                            lineHeight: '1.6',
+                            border: msg.role === 'user' ? 'none' : '1px solid var(--border-color)'
                         }}
                     >
                         {msg.content}
@@ -83,35 +100,55 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
                 ))}
 
                 {loading && (
-                    <div style={{ alignSelf: 'flex-start', backgroundColor: '#e0e0e0', color: '#616161', padding: '10px 14px', borderRadius: '12px', fontSize: '13px', fontStyle: 'italic' }}>
-                        Thinking up budget optimizations...🔄
+                    <div 
+                        style={{ alignSelf: 'flex-start', backgroundColor: '#e2e8f0', color: 'var(--text-muted)', padding: '12px 18px', borderRadius: '16px 16px 16px 2px', fontSize: '13px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        role="status"
+                        aria-live="polite"
+                    >
+                        Thinking up budget optimizations... 🔄
                     </div>
                 )}
                 <div ref={chatEndRef} />
             </div>
 
             {/* Input Form Controls */}
-            <form onSubmit={handleSendMessage} style={{ display: 'flex', padding: '12px', borderTop: '1px solid #e0e0e0', backgroundColor: '#fafafa', gap: '8px' }}>
+            <form 
+                onSubmit={handleSendMessage} 
+                style={{ display: 'flex', padding: '16px', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-app)', gap: '10px' }}
+                aria-label="Message composer"
+            >
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask for custom saving roadmaps..."
                     disabled={loading}
-                    style={{ flex: 1, padding: '12px', borderRadius: '6px', border: '1px solid #ccc', outline: 'none', fontSize: '14px' }}
+                    aria-label="Question to Advisor"
+                    style={{ 
+                        flex: 1, 
+                        padding: '12px 16px', 
+                        borderRadius: 'var(--radius-md)', 
+                        border: '1px solid var(--border-color)', 
+                        outline: 'none', 
+                        fontSize: '14px',
+                        backgroundColor: '#ffffff',
+                        transition: 'border-color 0.2s, box-shadow 0.2s'
+                    }}
                 />
                 <button
                     type="submit"
                     disabled={loading || !input.trim()}
+                    aria-label="Send message"
                     style={{
-                        backgroundColor: loading || !input.trim() ? '#9e9e9e' : '#2e7d32',
-                        color: '#fff',
+                        backgroundColor: loading || !input.trim() ? 'var(--text-light)' : 'var(--primary-dark)',
+                        color: '#ffffff',
                         border: 'none',
-                        padding: '0 20px',
-                        borderRadius: '6px',
+                        padding: '0 24px',
+                        borderRadius: 'var(--radius-md)',
                         cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
-                        fontWeight: 'bold',
-                        transition: 'background 0.2s'
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        transition: 'background-color 0.2s, transform 0.1s'
                     }}
                 >
                     Send
@@ -121,4 +158,4 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
     );
 }
 
-export default ChatAssistant;
+export default ChatAssistant;
