@@ -1,5 +1,7 @@
 // src/components/BudgetMetrics.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
+
 
 function BudgetMetrics({ metrics }) {
     const carbonLoad = parseFloat(metrics.currentCarbonKg) || 0;
