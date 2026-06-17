@@ -66,6 +66,19 @@ if (openaiApiKey && openaiApiKey !== 'your_openai_api_key_here') {
 // Simple in-memory cache for advisor queries
 const cache = new Map();
 
+// Sanitizes input strings to prevent XSS / HTML injection
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .trim()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
 // Generate a cache key based on query context and user prompt
 function getCacheKey(userContext, messageHistory, newMessage) {
   const contextPart = userContext ? JSON.stringify(userContext) : '';
@@ -95,6 +108,13 @@ app.post('/api/advisor', async (req, res) => {
       });
     }
 
+    if (newMessage.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        error: 'newMessage exceeds maximum length of 1000 characters.'
+      });
+    }
+
     if (userContext && (typeof userContext !== 'object' || Array.isArray(userContext))) {
       return res.status(400).json({
         success: false,
@@ -109,8 +129,44 @@ app.post('/api/advisor', async (req, res) => {
       });
     }
 
+    // Sanitize and validate inputs
+    const cleanMessage = sanitizeInput(newMessage);
+    const cleanContext = {};
+    if (userContext) {
+      if (userContext.location !== undefined) {
+        cleanContext.location = sanitizeInput(String(userContext.location));
+      }
+      if (userContext.vehicleType !== undefined) {
+        cleanContext.vehicleType = sanitizeInput(String(userContext.vehicleType));
+      }
+      if (userContext.monthlyKwh !== undefined && userContext.monthlyKwh !== '') {
+        const kwh = parseFloat(userContext.monthlyKwh);
+        if (isNaN(kwh) || kwh < 0) {
+          return res.status(400).json({
+            success: false,
+            error: 'monthlyKwh must be a non-negative number.'
+          });
+        }
+        cleanContext.monthlyKwh = String(kwh);
+      } else {
+        cleanContext.monthlyKwh = '';
+      }
+      if (userContext.commuteDistance !== undefined && userContext.commuteDistance !== '') {
+        const dist = parseFloat(userContext.commuteDistance);
+        if (isNaN(dist) || dist < 0) {
+          return res.status(400).json({
+            success: false,
+            error: 'commuteDistance must be a non-negative number.'
+          });
+        }
+        cleanContext.commuteDistance = String(dist);
+      } else {
+        cleanContext.commuteDistance = '';
+      }
+    }
+
     // Check Cache first to improve efficiency
-    const cacheKey = getCacheKey(userContext, messageHistory, newMessage);
+    const cacheKey = getCacheKey(cleanContext, messageHistory, cleanMessage);
     if (cache.has(cacheKey)) {
       const cachedResponse = cache.get(cacheKey);
       return res.json({
@@ -122,8 +178,8 @@ app.post('/api/advisor', async (req, res) => {
 
     // Build the advisor's system prompt incorporating user context
     let contextString = 'No specific user context provided.';
-    if (userContext && Object.keys(userContext).length > 0) {
-      contextString = JSON.stringify(userContext, null, 2);
+    if (cleanContext && Object.keys(cleanContext).length > 0) {
+      contextString = JSON.stringify(cleanContext, null, 2);
     }
 
     const systemPrompt = `You are a helpful and knowledgeable Carbon Footprint & Sustainability advisor.
@@ -181,7 +237,7 @@ Please reply to the user's new message, maintaining a friendly and encouraging t
       }
       contents.push({
         role: 'user',
-        parts: [{ text: newMessage }]
+        parts: [{ text: cleanMessage }]
       });
 
       const body = {
@@ -217,7 +273,7 @@ Please reply to the user's new message, maintaining a friendly and encouraging t
       const messages = [
         { role: 'system', content: systemPrompt },
         ...formattedHistory,
-        { role: 'user', content: newMessage }
+        { role: 'user', content: cleanMessage }
       ];
 
       // Call OpenAI API

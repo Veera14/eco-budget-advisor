@@ -1,5 +1,7 @@
 // src/components/ChatAssistant.jsx
 import React, { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
+
 
 function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
     const [input, setInput] = useState('');
@@ -72,7 +74,7 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
                         <span style={{ fontSize: '13px', display: 'inline-block', marginTop: '6px' }}>
                             Adjust your variables in the left sidebar, then ask me anything like:
                         </span>
-                        <em style={{ display: 'block', marginTop: '8px', color: 'var(--primary-hover)', fontWeight: '600', fontSize: '13px' }}>
+                        <em style={{ display: 'block', marginTop: '8px', color: 'var(--primary-dark)', fontWeight: '600', fontSize: '13px' }}>
                             "How can I drop my electricity load by 15% to save money?"
                         </em>
                     </div>
@@ -129,7 +131,6 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
                         padding: '12px 16px', 
                         borderRadius: 'var(--radius-md)', 
                         border: '1px solid var(--border-color)', 
-                        outline: 'none', 
                         fontSize: '14px',
                         backgroundColor: '#ffffff',
                         transition: 'border-color 0.2s, box-shadow 0.2s'
@@ -157,5 +158,21 @@ function ChatAssistant({ userContext, chatHistory, setChatHistory }) {
         </div>
     );
 }
+
+ChatAssistant.propTypes = {
+    userContext: PropTypes.shape({
+        location: PropTypes.string,
+        monthlyKwh: PropTypes.string,
+        commuteDistance: PropTypes.string,
+        vehicleType: PropTypes.string
+    }).isRequired,
+    chatHistory: PropTypes.arrayOf(
+        PropTypes.shape({
+            role: PropTypes.string.isRequired,
+            content: PropTypes.string.isRequired
+        })
+    ).isRequired,
+    setChatHistory: PropTypes.func.isRequired
+};
 
 export default ChatAssistant;

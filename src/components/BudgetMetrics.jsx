@@ -9,9 +9,14 @@ function BudgetMetrics({ metrics }) {
 
     const getProgressBarColor = () => {
         if (percentageOfTarget <= 75) return 'var(--success)';
-        if (percentageOfTarget <= 100) return '#eab308'; // Amber 500
+        if (percentageOfTarget <= 100) return '#b45309'; // Darker Amber/Orange for AAA contrast
         return 'var(--danger)';
     };
+
+    // Calculate percentages for the breakdown chart
+    const totalBreakdown = transportCarbon + energyCarbon || 1;
+    const transportPercent = Math.round((transportCarbon / totalBreakdown) * 100);
+    const energyPercent = Math.round((energyCarbon / totalBreakdown) * 100);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -26,7 +31,7 @@ function BudgetMetrics({ metrics }) {
                 </div>
 
                 {/* Estimated Resource Cost Card */}
-                <div style={{ backgroundColor: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '5px solid var(--warning)', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ backgroundColor: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '5px solid #b45309', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estimated Resource Cost</div>
                     <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', marginTop: '6px', fontFamily: 'var(--font-display)' }}>
                         ${metrics.currentCostDollars} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>/mo</span>
@@ -36,13 +41,13 @@ function BudgetMetrics({ metrics }) {
                 {/* Potential Carbon Saved Card */}
                 <div style={{ backgroundColor: 'var(--primary-light)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '5px solid var(--success)', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Potential Carbon Saved</div>
-                    <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--success)', marginTop: '6px', fontFamily: 'var(--font-display)' }}>
+                    <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--primary-dark)', marginTop: '6px', fontFamily: 'var(--font-display)' }}>
                         -{metrics.potentialCarbonSaved} <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary-dark)' }}>kg</span>
                     </div>
                 </div>
 
                 {/* Potential Cash Saved Card */}
-                <div style={{ backgroundColor: 'var(--primary-light)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '5px solid var(--primary)', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ backgroundColor: 'var(--primary-light)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', borderLeft: '5px solid var(--primary-hover)', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Potential Cash Saved</div>
                     <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--primary-dark)', marginTop: '6px', fontFamily: 'var(--font-display)' }}>
                         +${metrics.potentialCashSaved} <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary-dark)' }}>/mo</span>
@@ -78,13 +83,63 @@ function BudgetMetrics({ metrics }) {
                         }} 
                     />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-light)', marginTop: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
                     <span>0 kg (Zero Carbon)</span>
                     <span>Sustainable Threshold ({sustainableTarget} kg)</span>
                 </div>
             </div>
+
+            {/* Resource Footprint Breakdown Chart */}
+            {carbonLoad > 0 && (
+                <div style={{ backgroundColor: 'var(--bg-card)', padding: '16px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                        Footprint Resource Breakdown
+                    </h3>
+                    <div style={{ display: 'flex', height: '24px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', backgroundColor: 'var(--border-color)', marginBottom: '8px' }}>
+                        {transportCarbon > 0 && (
+                            <div 
+                                style={{ width: `${transportPercent}%`, backgroundColor: 'var(--secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontSize: '10px', fontWeight: '700' }}
+                                title={`Transport: ${transportCarbon} kg CO₂`}
+                            >
+                                {transportPercent >= 15 && `Transport (${transportPercent}%)`}
+                            </div>
+                        )}
+                        {energyCarbon > 0 && (
+                            <div 
+                                style={{ width: `${energyPercent}%`, backgroundColor: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontSize: '10px', fontWeight: '700' }}
+                                title={`Energy: ${energyCarbon} kg CO₂`}
+                            >
+                                {energyPercent >= 15 && `Energy (${energyPercent}%)`}
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: 'var(--secondary)', borderRadius: '2px' }} />
+                            <span>Transport: {metrics.currentTransportCarbon} kg CO₂ (${metrics.currentTransportCost})</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ display: 'inline-block', width: '10px', height: '10px', backgroundColor: 'var(--primary)', borderRadius: '2px' }} />
+                            <span>Energy: {metrics.currentEnergyCarbon} kg CO₂ (${metrics.currentEnergyCost})</span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
-export default BudgetMetrics;
+BudgetMetrics.propTypes = {
+    metrics: PropTypes.shape({
+        currentCarbonKg: PropTypes.string.isRequired,
+        currentCostDollars: PropTypes.string.isRequired,
+        potentialCarbonSaved: PropTypes.string.isRequired,
+        potentialCashSaved: PropTypes.string.isRequired,
+        currentTransportCarbon: PropTypes.string,
+        currentEnergyCarbon: PropTypes.string,
+        currentTransportCost: PropTypes.string,
+        currentEnergyCost: PropTypes.string
+    }).isRequired
+};
+
+export default BudgetMetrics;

@@ -50,6 +50,11 @@ export function evaluateEcoBudget(context) {
         currentCarbonKg: totalCarbon.toFixed(1),
         currentCostDollars: totalCost.toFixed(2),
         potentialCarbonSaved: (totalCarbon * targetReduction).toFixed(1),
-        potentialCashSaved: (totalCost * targetReduction).toFixed(2)
+        potentialCashSaved: (totalCost * targetReduction).toFixed(2),
+        // Breakdowns for fine-grained alignment details
+        currentTransportCarbon: currentTransportCarbon.toFixed(1),
+        currentEnergyCarbon: currentEnergyCarbon.toFixed(1),
+        currentTransportCost: currentTransportCost.toFixed(2),
+        currentEnergyCost: currentEnergyCost.toFixed(2)
     };
 }

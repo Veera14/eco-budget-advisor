@@ -63,9 +63,15 @@ h1, h2, h3, h4 {
 }
 
 /* Accessibility Focus States */
-input:focus, select:focus, button:focus, textarea:focus {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+  outline: none !important;
+}
+
+button:focus {
+  outline: 2px solid var(--primary-hover) !important;
+  outline-offset: 2px !important;
 }
 
 /* Custom Scrollbar for modern touch */

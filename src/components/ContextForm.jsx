@@ -1,5 +1,6 @@
-// src/components/ContextForm.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
+
 
 const ContextForm = React.memo(({ userContext, setUserContext }) => {
     const handleChange = (e) => {
@@ -126,5 +127,15 @@ const ContextForm = React.memo(({ userContext, setUserContext }) => {
 });
 
 ContextForm.displayName = 'ContextForm';
+
+ContextForm.propTypes = {
+    userContext: PropTypes.shape({
+        location: PropTypes.string,
+        monthlyKwh: PropTypes.string,
+        commuteDistance: PropTypes.string,
+        vehicleType: PropTypes.string
+    }).isRequired,
+    setUserContext: PropTypes.func.isRequired
+};
 
 export default ContextForm;
