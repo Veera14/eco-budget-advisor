@@ -37,8 +37,8 @@ describe('BudgetMetrics Component', () => {
         expect(screen.getByText(/Energy: 150.0 kg/i)).toBeInTheDocument();
 
         // Verify bar segments
-        expect(screen.getByTitle('Transport: 100.0 kg CO₂')).toBeInTheDocument();
-        expect(screen.getByTitle('Energy: 150.0 kg CO₂')).toBeInTheDocument();
+        expect(screen.getByTitle('Transport: 100 kg CO₂')).toBeInTheDocument();
+        expect(screen.getByTitle('Energy: 150 kg CO₂')).toBeInTheDocument();
     });
 
     it('updates progress limit based on sustainable targets', () => {

@@ -5,9 +5,12 @@ import PropTypes from 'prop-types';
 
 function BudgetMetrics({ metrics }) {
     const carbonLoad = parseFloat(metrics.currentCarbonKg) || 0;
+    const transportCarbon = parseFloat(metrics.currentTransportCarbon) || 0;
+    const energyCarbon = parseFloat(metrics.currentEnergyCarbon) || 0;
     // Set a baseline target, e.g., 300 kg CO2 / month as a sustainable household target
     const sustainableTarget = 300;
     const percentageOfTarget = Math.min(Math.round((carbonLoad / sustainableTarget) * 100), 200);
+
 
     const getProgressBarColor = () => {
         if (percentageOfTarget <= 75) return 'var(--success)';
